@@ -7,62 +7,10 @@ var gunzip = require('gunzip-maybe')
 var tar = require('tar-fs')
 var acc = require('acc');
 
-var _0777 = parseInt('0777', 8);
-
-function identity(a) { return a; }
-function mkdir(p, opts, f, made) {
-  if (typeof opts === 'function') {
-    f = opts;
-    opts = {};
-  }
-  else if (!opts || typeof opts !== 'object') {
-    opts = { mode: opts };
-  }
-
-  var mode = opts.mode;
-  var xfs = opts.fs || fs;
-
-  if (mode === undefined) {
-    mode = _0777 & (~process.umask());
-  }
-
-  if (!made) made = null;
-
-  var cb = f || function () {};
-  p = path.resolve(p);
-
-  xfs.mkdir(p, mode, function (er) {
-    if (!er) {
-      made = made || p;
-      return cb(null, made);
-    }
-    switch (er.code) {
-      case 'ENOENT':
-        mkdir(path.dirname(p), opts, function (er, made) {
-          if (er) cb(er, made);
-          else mkdir(p, opts, cb, made);
-        });
-        break;
-
-      // In the case of any other error, just see if there's a dir
-      // there already.  If so, then hooray!  If not, then something
-      // is borked.
-      default:
-        xfs.stat(p, function (er2, stat) {
-          // if the stat fails, then that's super weird.
-          // let the original error be the failure reason.
-          if (er2 || !stat.isDirectory()) cb(er, made)
-          else cb(null, made);
-        });
-        break;
-    }
-  });
-}
-
+var Utils = require('./utils');
 
 // TODO(vy):
 // - Pursue promise-based system.
-// - Migrate generic filesystem code into own module
 // - Add better logging
 // - Progress bar?
 
@@ -106,20 +54,20 @@ module.exports = {
       console.info('edpm -', 'installing', what.name + '@' + what.version, 'into', relative_path);
     }
 
-    mkdir(where, function(err) {
+    Utils.mkdir(where, function(err) {
       if (err) return cb(err);
 
       var deps = Object.assign({}, what.dependencies, devDeps ? what.devDependencies : {});
       var numDeps = Object.keys(deps).length;
 
       var onInstalled = acc((depth === 0 ? 0 : 1) + 1, function (errs) {
-        if ((errs || []).filter(identity).length) return cb(errs.filter(identity)[0])
+        if ((errs || []).filter(Utils.identity).length) return cb(errs.filter(Utils.identity)[0])
         if (depth === 0) return cb()
         fs.writeFile(path.join(where, 'package.json'), JSON.stringify(what, null, 2), cb)
       });
 
       var onResolved = acc(numDeps, function(errs, deps) {
-        if (errs.filter(identity).length) return cb(errs.filter(identity)[0]);
+        if (errs.filter(Utils.identity).length) return cb(errs.filter(Utils.identity)[0]);
 
         deps.forEach(function (dep) {
           if (family[dep.dist.shasum]) return
@@ -146,7 +94,7 @@ module.exports = {
 
   linkBin: function(where, what, to, cb) {
     cb = cb || function () {};
-    mkdir(to, function(err) {
+    Utils.mkdir(to, function(err) {
       if (err) return cb(err);
 
       var bin = what.bin;
@@ -157,7 +105,7 @@ module.exports = {
       bin = bin || {};
 
       var onLinked = acc(Object.keys(bin).length + 1, function (errs) {
-        if ((errs || []).filter(identity).length) return cb(errs.filter(identity)[0]);
+        if ((errs || []).filter(Utils.identity).length) return cb(errs.filter(Utils.identity)[0]);
         cb();
       })
 
