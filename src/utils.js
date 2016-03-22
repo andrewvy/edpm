@@ -1,4 +1,5 @@
 var fs = require('fs');
+var path = require('path');
 var _0777 = parseInt('0777', 8);
 
 module.exports = {
@@ -6,6 +7,8 @@ module.exports = {
 
   // https://github.com/substack/node-mkdirp
   mkdir: function(p, opts, f, made) {
+    var _this = this;
+
     if (typeof opts === 'function') {
       f = opts;
       opts = {};
@@ -31,11 +34,12 @@ module.exports = {
         made = made || p;
         return cb(null, made);
       }
+
       switch (er.code) {
         case 'ENOENT':
-          mkdir(path.dirname(p), opts, function (er, made) {
+          _this.mkdir(path.dirname(p), opts, function (er, made) {
             if (er) cb(er, made);
-            else mkdir(p, opts, cb, made);
+            else _this.mkdir(p, opts, cb, made);
           });
           break;
 

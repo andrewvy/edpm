@@ -70,23 +70,25 @@ module.exports = {
         if (errs.filter(Utils.identity).length) return cb(errs.filter(Utils.identity)[0]);
 
         deps.forEach(function (dep) {
-          if (family[dep.dist.shasum]) return
-          family[dep.dist.shasum] = true
-          onInstalled.count++
-          _this.install(path.join(where, 'node_modules', dep.name), dep, Object.create(family), false, depth + 1, onInstalled)
+          if (family[dep.dist.shasum]) return;
+          family[dep.dist.shasum] = true;
+          onInstalled.count++;
+
+          _this.install(path.join(where, 'node_modules', dep.name), dep, Object.create(family), false, depth + 1, onInstalled);
         });
 
         onInstalled();
       });
 
       if (!numDeps) onInstalled();
-      for (var dep in deps) _this.resolve(dep, what.dependencies[dep], onResolved);
+
+      for (var dep in deps) _this.resolve(dep, deps[dep], onResolved);
 
       if (depth > 0) {
         _this.fetch(where, what, function (err) {
-          if (err) return cb(err)
-          if (depth > 1) return onInstalled()
-          _this.linkBin(where, what, path.join(where, '..', '.bin'), onInstalled)
+          if (err) return cb(err);
+          if (depth > 1) return onInstalled();
+          _this.linkBin(where, what, path.join(where, '..', '.bin'), onInstalled);
         });
       }
     });
@@ -98,10 +100,12 @@ module.exports = {
       if (err) return cb(err);
 
       var bin = what.bin;
+
       if (typeof bin === 'string') {
         bin = {};
         bin[what.name] = what.bin;
       }
+
       bin = bin || {};
 
       var onLinked = acc(Object.keys(bin).length + 1, function (errs) {

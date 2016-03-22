@@ -18,6 +18,11 @@ module.exports = {
   noop: function() { return null; },
   unrecognized: function() { return console.info("Unrecognized command."); },
   error: function(msg) { return console.error("edpm", msg); },
+  handleError: function(msg) {
+    if (msg) return this.error(msg);
+
+    return console.info("Successfully installed.");
+  },
 
   version: function() {
     console.info(" _  _| _  _ _   \n"+
@@ -45,7 +50,7 @@ module.exports = {
       return this.error("package.json not found");
     }
 
-    Registry.install(process.cwd(), package_json, {}, true, 0, this.noop);
+    Registry.install(process.cwd(), package_json, {}, true, 0, this.handleError);
   },
 
   install_package: function(package_name) {
