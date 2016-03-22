@@ -60,6 +60,12 @@ function mkdir(p, opts, f, made) {
 }
 
 
+// TODO(vy):
+// - Pursue promise-based system.
+// - Migrate generic filesystem code into own module
+// - Add better logging
+// - Progress bar?
+
 module.exports = {
   resolve: function(dep, version, cb) {
     console.info('edpm -', 'resolving', dep + '@' + version);

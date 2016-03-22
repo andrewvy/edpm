@@ -10,6 +10,10 @@ var HELP_DOCS = {
              "edpm install <package>@<version> - Installs the given package with version"
 };
 
+// TODO(vy):
+// - Split out logging system into a more colorful module.
+// - Support flags
+
 module.exports = {
   noop: function() { return null; },
   unrecognized: function() { return console.info("Unrecognized command."); },
@@ -45,5 +49,6 @@ module.exports = {
   },
 
   install_package: function(package_name) {
+    // TOOO(vy): Need to selectively install package names.
   }
 };

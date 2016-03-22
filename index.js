@@ -7,6 +7,7 @@ var ALLOWED_COMMANDS = [
   'help'
 ];
 
+// TODO(vy): Act upon flags.
 var ALLOWED_FLAGS = [
   '-v'
 ]
@@ -18,11 +19,9 @@ var input = process.argv.slice(2).filter(function(command, index, array) {
 
 if (!(input.length > 0)) { return cmd.version(); }
 
-var argc_with_flags = input.length;
 var argc_without_flags = input.filter(function(command) {
   return (ALLOWED_COMMANDS.indexOf(command) != -1);
 }).length;
-
 
 switch (input[0]) {
   case 'install':
