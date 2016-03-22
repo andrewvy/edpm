@@ -1,6 +1,9 @@
 var path = require('path');
 var fs = require('fs');
 
+var acc = require('acc');
+
+var Utils = require('./utils');
 var Registry = require('./registry');
 
 var HELP_DOCS = {
@@ -53,7 +56,36 @@ module.exports = {
     Registry.install(process.cwd(), package_json, {}, true, 0, this.handleError);
   },
 
-  install_package: function(package_name) {
-    // TOOO(vy): Need to selectively install package names.
+  // TOOO(vy): Need to selectively install package names.
+  install_package: function(package_name, version) {
+    if (package_name == "" || package_name == null) return;
+    version = version || "*";
+    var _this = this;
+    var depth = 0;
+    var family = {};
+    var where = process.cwd();
+
+    console.info('edpm -', 'installing single package', package_name);
+
+    var onInstalled = acc((depth === 0 ? 0 : 1) + 1, function (errs) {
+      if ((errs || []).filter(Utils.identity).length) return _this.handleError(errs.filter(Utils.identity)[0])
+      if (depth === 0) return _this.handleError()
+    });
+
+    var onResolved = acc(1, function(errs, deps) {
+      if (errs.filter(Utils.identity).length) return _this.handleError(errs.filter(Utils.identity)[0]);
+
+      deps.forEach(function (dep) {
+        if (family[dep.dist.shasum]) return;
+        family[dep.dist.shasum] = true;
+        onInstalled.count++;
+
+        Registry.install(path.join(where, 'node_modules', dep.name), dep, Object.create(family), false, depth + 1, onInstalled);
+      });
+
+      onInstalled();
+    });
+
+    Registry.resolve(package_name, version, onResolved);
   }
 };
